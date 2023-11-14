@@ -24,7 +24,12 @@ namespace CG
         TexturedMaterial material1;
         TexturedMaterial material2;
         DiffuseMaterial diffuseMaterial;
-        int GamePhase = 0;
+        int gamePhase = 0;
+        int menuButton = 0;
+        float minRangeX = 0.6f;
+        float maxRangeX = 2.0f;
+        float minRangeY = -1.4f;
+        float maxRangeY = 1.2f;
 
         public Game()
         {
@@ -140,7 +145,7 @@ namespace CG
             textureConfig.AddParameter(TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
 
             //Carregamento de 2 texturas
-            texture1 = new Texture(gl, "./img.jpg", textureConfig);
+            texture1 = new Texture(gl, "./img2.jpg", textureConfig);
             texture2 = new Texture(gl, "./img2.jpg", textureConfig);;
 
             camera = new Camera(gl, window);
@@ -151,13 +156,15 @@ namespace CG
             transform2 = new Transform(gl);
             transform2.position.X = -2.0f;
             transform3 = new Transform(gl);
+            transform3.scale.Y = 10.0f;
+            transform3.scale.X = 0.05f;
 
             material1 = new TexturedMaterial(program, gl);
             material1.texture = texture1;
             material2 = new TexturedMaterial(program, gl);
             material2.texture = texture2;
             diffuseMaterial = new DiffuseMaterial(diffuseProgram, gl);
-            diffuseMaterial.objectColor = new Vector3(0.4f, 0.4f, 1.0f);
+            diffuseMaterial.objectColor = new Vector3(0f, 0f, 0f);
             diffuseMaterial.directionalLightDir = new Vector3(0, -0.5f, -1f);
             diffuseMaterial.directionalLightColor = new Vector3(0.7f, 0.7f, 0.5f);
             diffuseMaterial.ambientLightColor = new Vector3(0.1f, 0.1f, 0.1f);
@@ -172,7 +179,23 @@ namespace CG
         {
             if(key == Key.Z)
             {
-                transform2.position.Y -= 2.0f;
+                transform3.position.Y  -= 2.0f;
+            }
+            if (key == Key.A)
+            {
+                if(transform1.position.X >= minRangeX) { transform1.position.X -= 0.2f; }
+            }
+            if (key == Key.D)
+            {
+                if (transform1.position.X <= maxRangeX) { transform1.position.X += 0.2f; }
+            }
+            if (key == Key.W)
+            {
+                if (transform1.position.Y <= maxRangeY) { transform1.position.Y += 0.2f; }
+            }
+            if (key == Key.S)
+            {
+                if (transform1.position.Y >= minRangeY) { transform1.position.Y -= 0.2f; }
             }
         }
 
@@ -180,7 +203,7 @@ namespace CG
         {
             if(key == Key.Z)
             {
-                transform2.position.Y += 2.0f;
+                transform3.position.Y += 2.0f;
             }
         }
 
@@ -199,14 +222,17 @@ namespace CG
         {
             time += (float)delta;
 
-            transform1.rotation.Y += (float)delta;
-            transform3.rotation.Y += (float)(delta * 0.25f);
+            //transform1.rotation.Y += (float)delta;
+            //transform3.rotation.Y += (float)(delta * 0.25f);
 
             foreach(var keyboard in input.Keyboards)
             {
-                if(keyboard.IsKeyPressed(Key.G))
+                if(keyboard.IsKeyPressed(Key.Enter) && gamePhase == 0)
                 {
-                    transform3.position.Y += (float)delta;
+                    if(menuButton == 0)
+                    {
+                        gamePhase = 1;
+                    }
                 }
                 if(keyboard.IsKeyPressed(Key.F))
                 {
@@ -215,40 +241,36 @@ namespace CG
 
                 if(keyboard.IsKeyPressed(Key.E))
                 {
-                    camera.transform.rotation.Y -= (float)delta;
+                   //camera.transform.rotation.Y -= (float)delta;
                 }
                 if(keyboard.IsKeyPressed(Key.Q))
                 {
                     camera.transform.rotation.Y += (float)delta;
                 }
-                if(keyboard.IsKeyPressed(Key.W))
-                {
-                    camera.transform.position += camera.transform.Forward * (float)delta * 10.0f;
-                }
-                if(keyboard.IsKeyPressed(Key.S))
-                {
-                    camera.transform.position -= camera.transform.Forward * (float)delta * 10.0f;
-                }
-                if(keyboard.IsKeyPressed(Key.A))
-                {
-                    camera.transform.position -= camera.transform.Right * (float)delta * 10.0f;
-                }
-                if(keyboard.IsKeyPressed(Key.D))
-                {
-                    camera.transform.position += camera.transform.Right * (float)delta * 10.0f;
-                }
             }
+
+            if (transform1.position.Y - transform2.position.Y >= -0.1 && transform1.position.Y - transform2.position.Y <= 0.1) { gamePhase = 0; }
         }
 
         //Função de Render, que roda a cada frame do jogo. Nela, limpamos a tela e depois desenhamos todas as malhas que queremos
         private unsafe void Render(double delta)
         {
-            gl.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-            gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);//limpamos as cores e o depth buffer da tela
 
-            mesh.Draw(transform1, material1, camera);
-            mesh.Draw(transform2, material2, camera);
-            mesh.Draw(transform3, diffuseMaterial, camera);
+            if (gamePhase == 0)
+            {
+                gl.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            }
+            else if (gamePhase == 1)
+            {
+                gl.ClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+                gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);//limpamos as cores e o depth buffer da tela
+
+                mesh.Draw(transform1, material1, camera);
+                mesh.Draw(transform2, material2, camera);
+                mesh.Draw(transform3, diffuseMaterial, camera);
+
+                if(transform1.position.Y - transform2.position.Y >= -0.2 && transform1.position.Y - transform2.position.Y <= 0.2) { ; }
+            }
         }
     }
 }
