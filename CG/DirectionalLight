@@ -1,0 +1,9 @@
+namespace CG
+{
+    public class DirectionalLight
+    {
+        public Vector3 direction;
+        public Vector3 color;
+        float intensity;
+    }
+}
