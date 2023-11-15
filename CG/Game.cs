@@ -30,12 +30,19 @@ namespace CG
         float maxRangeX = 2.0f;
         float minRangeY = -1.4f;
         float maxRangeY = 1.2f;
+        float minRotation = -6.2825f;
+        float maxRotation = 6.2825f;
+        float winTimer = 0.0f;
+        bool lockY = false;
+        bool lockX = false;
+        bool lockRotation = false;
+        Random rng = new Random();
 
         public Game()
         {
             Window.PrioritizeSdl();
             WindowOptions options = WindowOptions.Default;
-            options.Size =  new Vector2D<int>(800, 600);
+            options.Size = new Vector2D<int>(800, 600);
             options.Title = "Jogo de Imitação Wow";
             window = Window.Create(options);//Aqui nós pedimos para a Silk.Net criar uma janela, com as opções padrão(altura/largura/etc)
 
@@ -48,12 +55,12 @@ namespace CG
             window.Initialize();
 
             input = window.CreateInput();
-            foreach(var keyboard in input.Keyboards)
+            foreach (var keyboard in input.Keyboards)
             {
                 keyboard.KeyDown += KeyDown;
                 keyboard.KeyUp += KeyUp;
             }
-            foreach(var mouse in input.Mice)
+            foreach (var mouse in input.Mice)
             {
                 mouse.Click += MouseClick;
             }
@@ -146,15 +153,17 @@ namespace CG
 
             //Carregamento de 2 texturas
             texture1 = new Texture(gl, "./img2.jpg", textureConfig);
-            texture2 = new Texture(gl, "./img2.jpg", textureConfig);;
+            texture2 = new Texture(gl, "./img2.jpg", textureConfig); ;
 
             camera = new Camera(gl, window);
             camera.transform.position.Z = 4.0f;
 
             transform1 = new Transform(gl);
             transform1.position.X = 2.0f;
+            transform1.position.Z = 0f;
             transform2 = new Transform(gl);
             transform2.position.X = -2.0f;
+            transform2.position.Z = 0f;
             transform3 = new Transform(gl);
             transform3.scale.Y = 10.0f;
             transform3.scale.X = 0.05f;
@@ -177,41 +186,54 @@ namespace CG
 
         private void KeyDown(IKeyboard keyboard, Key key, int i)
         {
-            if(key == Key.Z)
+            if (key == Key.Z)
             {
-                transform3.position.Y  -= 2.0f;
+                transform3.position.Y -= 2.0f;
             }
-            if (key == Key.A)
+            if (key == Key.Enter && gamePhase == 0)
             {
-                if(transform1.position.X >= minRangeX) { transform1.position.X -= 0.2f; }
+                if (menuButton == 0)
+                {
+                    gamePhase = 1;
+                }
             }
-            if (key == Key.D)
+            if (gamePhase == 1)
             {
-                if (transform1.position.X <= maxRangeX) { transform1.position.X += 0.2f; }
-            }
-            if (key == Key.W)
-            {
-                if (transform1.position.Y <= maxRangeY) { transform1.position.Y += 0.2f; }
-            }
-            if (key == Key.S)
-            {
-                if (transform1.position.Y >= minRangeY) { transform1.position.Y -= 0.2f; }
+                if (key == Key.A)
+                {
+                    if (transform1.position.X >= minRangeX && lockX == false) { transform1.position.X -= 0.2f; winTimer = 1.5f; }
+                }
+                if (key == Key.D)
+                {
+                    if (transform1.position.X <= maxRangeX && lockX == false) { transform1.position.X += 0.2f; winTimer = 1.5f; }
+                }
+                if (key == Key.W)
+                {
+                    if (transform1.position.Y <= maxRangeY && lockY == false) { transform1.position.Y += 0.2f; winTimer = 1.5f; }
+                }
+                if (key == Key.S)
+                {
+                    if (transform1.position.Y >= minRangeY && lockY == false) { transform1.position.Y -= 0.2f; winTimer = 1.5f; }
+                }
+                if (key == Key.T)
+                {
+                    RandomizeCube();
+                }
             }
         }
 
         private void KeyUp(IKeyboard keyboard, Key key, int i)
         {
-            if(key == Key.Z)
+            if (key == Key.Z)
             {
-                transform3.position.Y += 2.0f;
+                //transform3.position.Y -= 2.0f;
             }
         }
 
         private void MouseClick(IMouse mouse, MouseButton button, Vector2 position)
         {
-            if(button == MouseButton.Left)
+            if (button == MouseButton.Left)
             {
-                transform1.position.Y = position.Y / 800.0f;
             }
         }
 
@@ -225,31 +247,54 @@ namespace CG
             //transform1.rotation.Y += (float)delta;
             //transform3.rotation.Y += (float)(delta * 0.25f);
 
-            foreach(var keyboard in input.Keyboards)
+            foreach (var keyboard in input.Keyboards)
             {
-                if(keyboard.IsKeyPressed(Key.Enter) && gamePhase == 0)
-                {
-                    if(menuButton == 0)
-                    {
-                        gamePhase = 1;
-                    }
-                }
-                if(keyboard.IsKeyPressed(Key.F))
+                if (keyboard.IsKeyPressed(Key.F))
                 {
                     transform3.position.Y -= (float)delta;
                 }
+                if (gamePhase == 1)
+                {
+                    if (keyboard.IsKeyPressed(Key.E))
+                    {
+                        //camera.transform.rotation.Y -= (float)delta;
+                        if (transform1.rotation.X < maxRotation && lockRotation == false) { transform1.rotation.X += 0.03f; winTimer = 1.5f; }
+                    }
+                    if (keyboard.IsKeyPressed(Key.Q))
+                    {
+                        if (transform1.rotation.X > minRotation && lockRotation == false) { transform1.rotation.X -= 0.03f; winTimer = 1.5f; }
+                    }
+                }
 
-                if(keyboard.IsKeyPressed(Key.E))
-                {
-                   //camera.transform.rotation.Y -= (float)delta;
-                }
-                if(keyboard.IsKeyPressed(Key.Q))
-                {
-                    camera.transform.rotation.Y += (float)delta;
-                }
             }
 
-            if (transform1.position.Y - transform2.position.Y >= -0.1 && transform1.position.Y - transform2.position.Y <= 0.1) { gamePhase = 0; }
+            if (gamePhase == 1 && winTimer > 0.1f)
+            {
+                winTimer -= (float)delta;
+                Console.WriteLine($"{transform1.position.X} ; {transform2.position.X} ; {(float)System.Math.Round(transform1.rotation.X % 6.2825f - transform2.rotation.X % 6.2825f, 3)}");
+            }
+            if (winTimer < 0.1f)
+            {
+                double rotationDifference = (double)System.Math.Round(Math.Abs(transform1.rotation.X  - transform2.rotation.X) % 6.2825, 3);
+                if (transform1.position.Y - transform2.position.Y >= -0.1f && transform1.position.Y - transform2.position.Y <= 0.1f)
+                {
+                    lockY = true;
+                    if (transform1.position.X - transform2.position.X >= 2.78f && transform1.position.X - transform2.position.X <= 2.81f)
+                    {
+                        if (rotationDifference <= 0.18 && rotationDifference >= -0.18)
+                        {
+                            Console.WriteLine("Ganhou!!!");
+                            RandomizeCube();
+                        }
+                    }
+
+                }
+                if (transform1.position.X - transform2.position.X >= 2.78f && transform1.position.X - transform2.position.X <= 2.81f) { lockX = true; }
+                else { lockX = false; }
+                if (rotationDifference <= 0.18 && rotationDifference >= -0.18) { lockRotation = true;  }
+                else { lockRotation = false; }
+
+            }
         }
 
         //Função de Render, que roda a cada frame do jogo. Nela, limpamos a tela e depois desenhamos todas as malhas que queremos
@@ -269,8 +314,22 @@ namespace CG
                 mesh.Draw(transform2, material2, camera);
                 mesh.Draw(transform3, diffuseMaterial, camera);
 
-                if(transform1.position.Y - transform2.position.Y >= -0.2 && transform1.position.Y - transform2.position.Y <= 0.2) { ; }
             }
+        }
+
+        public void RandomizeCube()
+        {
+
+            double randX = (double)rng.Next(3, 12) * -0.2;
+            transform2.position.X = (float)randX;
+            double randY = ((double)rng.Next(15) - 7) * 0.2;
+            transform2.position.Y = (float)randY;
+            double randRotation = (rng.NextDouble() * 6.2528f);
+            transform2.rotation.X = (float)randRotation;
+
+            lockY = false;
+            lockRotation = false;
+            lockX = false;
         }
     }
 }
