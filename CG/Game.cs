@@ -17,14 +17,20 @@ namespace CG
         Mesh mesh;
         Texture texture1;
         Texture texture2;
+        Texture textureMenu;
         Camera camera;
         Transform transform1;
         Transform transform2;
         Transform transform3;
         Transform transformTimer;
+        Transform transformMenu;
+        Transform transformSignal;
         TexturedMaterial material1;
         TexturedMaterial material2;
+        TexturedMaterial materialMenu;
         DiffuseMaterial diffuseMaterial;
+        DiffuseMaterial redDiffuseMaterial;
+        DiffuseMaterial greenDiffuseMaterial;
 
         //Variaveis do Jogo
         int gamePhase = 0;
@@ -45,8 +51,9 @@ namespace CG
         float highScore = 0;
         float gameTimer = 0.0f;
         float scoreTimer = 0.0f;
+        int attempts = 0;
+        bool signal = false;
         Random rng = new Random();
-        DiffuseMaterial redDiffuseMaterial;
 
         public Game()
         {
@@ -163,7 +170,8 @@ namespace CG
 
             //Carregamento de 2 texturas
             texture1 = new Texture(gl, "./img2.jpg", textureConfig);
-            texture2 = new Texture(gl, "./img2.jpg", textureConfig); ;
+            texture2 = new Texture(gl, "./img2.jpg", textureConfig);
+            textureMenu = new Texture(gl, "./img3.jpg", textureConfig);
 
             camera = new Camera(gl, window);
             camera.transform.position.Z = 4.0f;
@@ -182,6 +190,15 @@ namespace CG
             transformTimer.scale.Y = 0.1f;
             transformTimer.position.Y += 1.6f;
             transformTimer.position.Z += 1.0f;
+            transformSignal = new Transform(gl);
+            transformSignal.scale /= 5;
+            transformSignal.position.X += 2.9f;
+            transformSignal.position.Y += 2.1f;
+            transformSignal.rotation.Y += 0.7f;
+            //Menu
+            transformMenu = new Transform(gl);
+            transformMenu.scale *= 3;
+            transformMenu.scale.X += 2;
 
 
 
@@ -196,6 +213,14 @@ namespace CG
             redDiffuseMaterial.directionalLightDir = new Vector3(0, 0.6f, -1.0f);
             redDiffuseMaterial.directionalLightColor = new Vector3(1f, 1f, 1f);
             redDiffuseMaterial.ambientLightColor = new Vector3(0.1f, 0.1f, 0.1f);
+            greenDiffuseMaterial = new DiffuseMaterial (diffuseProgram, gl);
+            greenDiffuseMaterial.objectColor = new Vector3(0f, 1f, 0f);
+            greenDiffuseMaterial.directionalLightDir = new Vector3(0, 0.6f, -1.0f);
+            greenDiffuseMaterial.directionalLightColor = new Vector3(0.2f, 0.2f, 0.2f);
+            greenDiffuseMaterial.ambientLightColor = new Vector3(0.1f, 0.1f, 0.1f);
+            //Menu
+            materialMenu = new TexturedMaterial(program, gl);
+            materialMenu.texture = textureMenu;
         }
 
         public void Run()
@@ -222,19 +247,19 @@ namespace CG
             {
                 if (key == Key.A)
                 {
-                    if (transform1.position.X >= minRangeX && lockX == false) { transform1.position.X -= 0.2f; winTimer = 0.8f; }
+                    if (transform1.position.X >= minRangeX && lockX == false) { transform1.position.X -= 0.2f; winTimer = 0.6f; }
                 }
                 if (key == Key.D)
                 {
-                    if (transform1.position.X <= maxRangeX && lockX == false) { transform1.position.X += 0.2f; winTimer = 0.8f; }
+                    if (transform1.position.X <= maxRangeX && lockX == false) { transform1.position.X += 0.2f; winTimer = 0.6f; }
                 }
                 if (key == Key.W)
                 {
-                    if (transform1.position.Y <= maxRangeY && lockY == false) { transform1.position.Y += 0.2f; winTimer = 0.8f; }
+                    if (transform1.position.Y <= maxRangeY && lockY == false) { transform1.position.Y += 0.2f; winTimer = 0.6f; }
                 }
                 if (key == Key.S)
                 {
-                    if (transform1.position.Y >= minRangeY && lockY == false) { transform1.position.Y -= 0.2f; winTimer = 0.8f; }
+                    if (transform1.position.Y >= minRangeY && lockY == false) { transform1.position.Y -= 0.2f; winTimer = 0.6f; }
                 }
                 if (key == Key.R)
                 {
@@ -271,11 +296,11 @@ namespace CG
                     //Controles da rotação do Cubo
                     if (keyboard.IsKeyPressed(Key.E))
                     {
-                        if (transform1.rotation.X < maxRotation && lockRotation == false) { transform1.rotation.X += 0.03f; winTimer = 1.5f; }
+                        if (transform1.rotation.X < maxRotation && lockRotation == false) { transform1.rotation.X += 0.03f; winTimer = 0.6f; }
                     }
                     if (keyboard.IsKeyPressed(Key.Q))
                     {
-                        if (transform1.rotation.X > minRotation && lockRotation == false) { transform1.rotation.X -= 0.03f; winTimer = 1.5f; }
+                        if (transform1.rotation.X > minRotation && lockRotation == false) { transform1.rotation.X -= 0.03f; winTimer = 0.6f; }
                     }
                 }
 
@@ -288,10 +313,10 @@ namespace CG
                 {
                     scoreTimer += (float)delta;
                     winTimer -= (float)delta;
-                    Console.WriteLine($"{transform1.position.X} ; {transform2.position.X} ; {(float)System.Math.Round(transform1.rotation.X % 6.2825f - transform2.rotation.X % 6.2825f, 3)} ; {gameTimer} ; {points}");
                 }
                 if (winTimer < 0.1f)
                 {
+                    signal = true;
                     double rotationDifference = (double)System.Math.Round(Math.Abs(transform1.rotation.X - transform2.rotation.X) % 6.2825, 3);
                     if (transform1.position.Y - transform2.position.Y >= -0.1f && transform1.position.Y - transform2.position.Y <= 0.1f)
                     {
@@ -301,19 +326,19 @@ namespace CG
                             if (rotationDifference <= 0.18 && rotationDifference >= -0.18)
                             {
                                 float tempPoints = (float)System.Math.Round(100 - (scoreTimer * 10));
-                                if (tempPoints < 15) { points += 15; }
+                                if (tempPoints < 15) { points += 15; tempPoints = 15; }
                                 else { points += tempPoints; }
                                 gameTimer += 6.0f;
-                                Console.WriteLine("Ganhou!!!");
+                                Console.WriteLine($"Posição Correta! Você recebeu {tempPoints} seu total agora é de {points}.");
                                 RandomizeCube();
                             }
                             else if (rotationDifference <=  -6.03f || rotationDifference >= 6.03f)
                             {
                                 float tempPoints = (float)System.Math.Round(100 - (scoreTimer * 10));
-                                if(tempPoints < 15) { points += 15; }
+                                if(tempPoints < 15) { points += 15; tempPoints = 15; }
                                 else{ points += tempPoints; }
                                 gameTimer += 6.0f;
-                                Console.WriteLine("Ganhou!!!");
+                                Console.WriteLine($"Posição Correta! Você recebeu {tempPoints} seu total agora é de {points}.");
                                 RandomizeCube();
                             }
                         }
@@ -328,9 +353,11 @@ namespace CG
                     else { lockRotation = false; }
 
                 }
+                else { signal = false; }
 
                 if (gameTimer <= 0.05f)
                 {
+                    attempts++;
                     lastScore = points;
                     if(lastScore > highScore) { highScore = lastScore; }
                     menuPrint = 0;
@@ -348,23 +375,50 @@ namespace CG
             {
                 gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
                 gl.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+                mesh.Draw(transformMenu, materialMenu, camera);
                 while(menuPrint < 1)
                 {
                     Console.Clear();
-                    Console.WriteLine($"High Score: {highScore}");
-                    Console.WriteLine($"Last Score: {lastScore}");
+                    Console.WriteLine("--------------------------------- JOGO DE IMITAÇÃO CG ---------------------------------");
+                    Console.WriteLine("                               Aperte Enter para Iniciar                               ");
+                    Console.WriteLine(); Console.WriteLine();
+                    Console.WriteLine("PONTUAÇÕES: ");
+                    Console.WriteLine($"High Score: {highScore}    -  Last Score: {lastScore}");
+                    Console.WriteLine($"Número de tentativas: {attempts}");
+                    Console.WriteLine(); Console.WriteLine();
+                    Console.WriteLine("CONTROLES: ");
+                    Console.WriteLine("W - A - S - D: Mover o Cubo.");
+                    Console.WriteLine("Q - E: Rotacionar o Cubo.");
+                    Console.WriteLine("R: Randomizar o Cubo-Alvo.");
+                    Console.WriteLine(); Console.WriteLine();
+                    Console.WriteLine("Instruções: ");
+                    Console.WriteLine(" - Seu Objetivo é colocar o Cubo da direita na mesma posição que o Cubo da Esquerda está.");
+                    Console.WriteLine(" - Seja rápido, caso o timer zerar o jogo acaba.");
+                    Console.WriteLine(" - Sua velocidade também afeta quantos pontos você irá receber.");
+                    Console.WriteLine("-----------------------------------------------------------------------------------------------");
+                    Console.WriteLine(" - Para a posição do cubo ser considerada é necessário esperar um pequeno buffer.");
+                    Console.WriteLine(" - Quando o buffer não estiver em efeito um sinal verde vai aparecer no canto da tela, indicando que uma posição certa estaria travada.");
+                    Console.WriteLine(" - Quando os elementos(X, Y e Rotação) estiverem corretos seus controles serão desabilitados, travando o Cubo na posição correta.");
+                    Console.WriteLine(" - Utilize a orientação das texturas para colocar o Cubo na rotação correta.");
+                    Console.WriteLine(" - Duas das Faces frontais do Cubo são iguais, nos casos em que não é possível orientar o Cubo pelas outras faces e a rotação parecer não travar, tente a outra face identica.");
+                    Console.WriteLine(" - O Console irá mostrar sua pontuação.");
+                    Console.WriteLine(); Console.WriteLine();
+                    Console.WriteLine("OBRIGADO POR JOGAR");
+
                     menuPrint++;
                 }
 
             }
             else if (gamePhase == 1)
             {
-                gl.ClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+                gl.ClearColor(0.85f, 0.85f, 0.85f, 1.0f);
                 gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);//limpamos as cores e o depth buffer da tela
 
                 mesh.Draw(transform1, material1, camera);
                 mesh.Draw(transform2, material2, camera);
                 mesh.Draw(transform3, diffuseMaterial, camera);
+                if (signal) { mesh.Draw(transformSignal, greenDiffuseMaterial, camera); }
                 mesh.Draw(transformTimer, redDiffuseMaterial, camera);
                 transformTimer.scale.X = gameTimer * 0.03f;
 
