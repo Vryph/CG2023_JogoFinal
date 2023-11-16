@@ -24,6 +24,8 @@ namespace CG
         TexturedMaterial material1;
         TexturedMaterial material2;
         DiffuseMaterial diffuseMaterial;
+
+        //Variaveis do Jogo
         int gamePhase = 0;
         int menuButton = 0;
         float minRangeX = 0.6f;
@@ -36,6 +38,8 @@ namespace CG
         bool lockY = false;
         bool lockX = false;
         bool lockRotation = false;
+        float points = 0.0f;
+        float gameTimer = 0.0f;
         Random rng = new Random();
 
         public Game()
@@ -194,7 +198,9 @@ namespace CG
             {
                 if (menuButton == 0)
                 {
+                    RandomizeCube();
                     gamePhase = 1;
+                    gameTimer += 60.0f;
                 }
             }
             if (gamePhase == 1)
@@ -215,7 +221,7 @@ namespace CG
                 {
                     if (transform1.position.Y >= minRangeY && lockY == false) { transform1.position.Y -= 0.2f; winTimer = 1.5f; }
                 }
-                if (key == Key.T)
+                if (key == Key.R)
                 {
                     RandomizeCube();
                 }
@@ -226,7 +232,6 @@ namespace CG
         {
             if (key == Key.Z)
             {
-                //transform3.position.Y -= 2.0f;
             }
         }
 
@@ -244,20 +249,13 @@ namespace CG
         {
             time += (float)delta;
 
-            //transform1.rotation.Y += (float)delta;
-            //transform3.rotation.Y += (float)(delta * 0.25f);
-
             foreach (var keyboard in input.Keyboards)
             {
-                if (keyboard.IsKeyPressed(Key.F))
-                {
-                    transform3.position.Y -= (float)delta;
-                }
                 if (gamePhase == 1)
                 {
+                    //Controles da rotação do Cubo
                     if (keyboard.IsKeyPressed(Key.E))
                     {
-                        //camera.transform.rotation.Y -= (float)delta;
                         if (transform1.rotation.X < maxRotation && lockRotation == false) { transform1.rotation.X += 0.03f; winTimer = 1.5f; }
                     }
                     if (keyboard.IsKeyPressed(Key.Q))
@@ -268,32 +266,54 @@ namespace CG
 
             }
 
-            if (gamePhase == 1 && winTimer > 0.1f)
+            if (gamePhase == 1)
             {
-                winTimer -= (float)delta;
-                Console.WriteLine($"{transform1.position.X} ; {transform2.position.X} ; {(float)System.Math.Round(transform1.rotation.X % 6.2825f - transform2.rotation.X % 6.2825f, 3)}");
-            }
-            if (winTimer < 0.1f)
-            {
-                double rotationDifference = (double)System.Math.Round(Math.Abs(transform1.rotation.X  - transform2.rotation.X) % 6.2825, 3);
-                if (transform1.position.Y - transform2.position.Y >= -0.1f && transform1.position.Y - transform2.position.Y <= 0.1f)
+                gameTimer -= (float)delta * 2;
+                if (winTimer > 0.1)
                 {
-                    lockY = true;
-                    if (transform1.position.X - transform2.position.X >= 2.78f && transform1.position.X - transform2.position.X <= 2.81f)
+                    winTimer -= (float)delta;
+                    Console.WriteLine($"{transform1.position.X} ; {transform2.position.X} ; {(float)System.Math.Round(transform1.rotation.X % 6.2825f - transform2.rotation.X % 6.2825f, 3)} ; {gameTimer} ; {points}");
+                }
+                if (winTimer < 0.1f)
+                {
+                    double rotationDifference = (double)System.Math.Round(Math.Abs(transform1.rotation.X - transform2.rotation.X) % 6.2825, 3);
+                    if (transform1.position.Y - transform2.position.Y >= -0.1f && transform1.position.Y - transform2.position.Y <= 0.1f)
                     {
-                        if (rotationDifference <= 0.18 && rotationDifference >= -0.18)
+                        lockY = true;
+                        if (transform1.position.X - transform2.position.X >= 2.78f && transform1.position.X - transform2.position.X <= 2.81f)
                         {
-                            Console.WriteLine("Ganhou!!!");
-                            RandomizeCube();
+                            if (rotationDifference <= 0.18 && rotationDifference >= -0.18)
+                            {
+                                points++;
+                                gameTimer += 6.0f;
+                                Console.WriteLine("Ganhou!!!");
+                                RandomizeCube();
+                            }
+                            else if (rotationDifference <=  -6.03f || rotationDifference >= 6.03f)
+                            {
+                                points++;
+                                gameTimer += 6.0f;
+                                Console.WriteLine("Ganhou!!!");
+                                RandomizeCube();
+                            }
                         }
+
                     }
 
-                }
-                if (transform1.position.X - transform2.position.X >= 2.78f && transform1.position.X - transform2.position.X <= 2.81f) { lockX = true; }
-                else { lockX = false; }
-                if (rotationDifference <= 0.18 && rotationDifference >= -0.18) { lockRotation = true;  }
-                else { lockRotation = false; }
+                    //Trava o objeto quando na posição certa
+                    if (transform1.position.X - transform2.position.X >= 2.78f && transform1.position.X - transform2.position.X <= 2.81f) { lockX = true; }
+                    else { lockX = false; }
+                    if (rotationDifference <= 0.18 && rotationDifference >= -0.18) { lockRotation = true; }
+                    else if (rotationDifference <= -6.03f || rotationDifference >= 6.03f) { lockRotation = true; }
+                    else { lockRotation = false; }
 
+                }
+
+                if (gameTimer <= 0.05f)
+                {
+                    Console.Clear();
+                    gamePhase = 0;
+                }
             }
         }
 
@@ -303,6 +323,7 @@ namespace CG
 
             if (gamePhase == 0)
             {
+                gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
                 gl.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
             }
             else if (gamePhase == 1)
