@@ -28,6 +28,7 @@ namespace CG
         //Variaveis do Jogo
         int gamePhase = 0;
         int menuButton = 0;
+        int menuPrint = 0;
         float minRangeX = 0.6f;
         float maxRangeX = 2.0f;
         float minRangeY = -1.4f;
@@ -39,7 +40,10 @@ namespace CG
         bool lockX = false;
         bool lockRotation = false;
         float points = 0.0f;
+        float lastScore = 0;
+        float highScore = 0;
         float gameTimer = 0.0f;
+        float scoreTimer = 0.0f;
         Random rng = new Random();
 
         public Game()
@@ -268,9 +272,10 @@ namespace CG
 
             if (gamePhase == 1)
             {
-                gameTimer -= (float)delta * 2;
+                gameTimer -= (float)delta;
                 if (winTimer > 0.1)
                 {
+                    scoreTimer += (float)delta;
                     winTimer -= (float)delta;
                     Console.WriteLine($"{transform1.position.X} ; {transform2.position.X} ; {(float)System.Math.Round(transform1.rotation.X % 6.2825f - transform2.rotation.X % 6.2825f, 3)} ; {gameTimer} ; {points}");
                 }
@@ -284,14 +289,18 @@ namespace CG
                         {
                             if (rotationDifference <= 0.18 && rotationDifference >= -0.18)
                             {
-                                points++;
+                                float tempPoints = (float)System.Math.Round(100 - (scoreTimer * 10));
+                                if (tempPoints < 15) { points += 15; }
+                                else { points += tempPoints; }
                                 gameTimer += 6.0f;
                                 Console.WriteLine("Ganhou!!!");
                                 RandomizeCube();
                             }
                             else if (rotationDifference <=  -6.03f || rotationDifference >= 6.03f)
                             {
-                                points++;
+                                float tempPoints = (float)System.Math.Round(100 - (scoreTimer * 10));
+                                if(tempPoints < 15) { points += 15; }
+                                else{ points += tempPoints; }
                                 gameTimer += 6.0f;
                                 Console.WriteLine("Ganhou!!!");
                                 RandomizeCube();
@@ -311,6 +320,9 @@ namespace CG
 
                 if (gameTimer <= 0.05f)
                 {
+                    lastScore = points;
+                    if(lastScore > highScore) { highScore = lastScore; }
+                    menuPrint = 0;
                     Console.Clear();
                     gamePhase = 0;
                 }
@@ -325,6 +337,14 @@ namespace CG
             {
                 gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
                 gl.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+                while(menuPrint < 1)
+                {
+                    Console.Clear();
+                    Console.WriteLine($"High Score: {highScore}");
+                    Console.WriteLine($"Last Score: {lastScore}");
+                    menuPrint++;
+                }
+
             }
             else if (gamePhase == 1)
             {
@@ -351,6 +371,7 @@ namespace CG
             lockY = false;
             lockRotation = false;
             lockX = false;
+            scoreTimer = 0;
         }
     }
 }
