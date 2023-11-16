@@ -21,6 +21,7 @@ namespace CG
         Transform transform1;
         Transform transform2;
         Transform transform3;
+        Transform transformTimer;
         TexturedMaterial material1;
         TexturedMaterial material2;
         DiffuseMaterial diffuseMaterial;
@@ -45,6 +46,7 @@ namespace CG
         float gameTimer = 0.0f;
         float scoreTimer = 0.0f;
         Random rng = new Random();
+        DiffuseMaterial redDiffuseMaterial;
 
         public Game()
         {
@@ -175,6 +177,13 @@ namespace CG
             transform3 = new Transform(gl);
             transform3.scale.Y = 10.0f;
             transform3.scale.X = 0.05f;
+            transformTimer = new Transform(gl);
+            transformTimer.scale.Z = 0.1f;
+            transformTimer.scale.Y = 0.1f;
+            transformTimer.position.Y += 1.6f;
+            transformTimer.position.Z += 1.0f;
+
+
 
             material1 = new TexturedMaterial(program, gl);
             material1.texture = texture1;
@@ -182,9 +191,11 @@ namespace CG
             material2.texture = texture2;
             diffuseMaterial = new DiffuseMaterial(diffuseProgram, gl);
             diffuseMaterial.objectColor = new Vector3(0f, 0f, 0f);
-            diffuseMaterial.directionalLightDir = new Vector3(0, -0.5f, -1f);
-            diffuseMaterial.directionalLightColor = new Vector3(0.7f, 0.7f, 0.5f);
-            diffuseMaterial.ambientLightColor = new Vector3(0.1f, 0.1f, 0.1f);
+            redDiffuseMaterial = new DiffuseMaterial(diffuseProgram, gl);
+            redDiffuseMaterial.objectColor = new Vector3(1f, 0f, 0f);
+            redDiffuseMaterial.directionalLightDir = new Vector3(0, 0.6f, -1.0f);
+            redDiffuseMaterial.directionalLightColor = new Vector3(1f, 1f, 1f);
+            redDiffuseMaterial.ambientLightColor = new Vector3(0.1f, 0.1f, 0.1f);
         }
 
         public void Run()
@@ -211,19 +222,19 @@ namespace CG
             {
                 if (key == Key.A)
                 {
-                    if (transform1.position.X >= minRangeX && lockX == false) { transform1.position.X -= 0.2f; winTimer = 1.5f; }
+                    if (transform1.position.X >= minRangeX && lockX == false) { transform1.position.X -= 0.2f; winTimer = 0.8f; }
                 }
                 if (key == Key.D)
                 {
-                    if (transform1.position.X <= maxRangeX && lockX == false) { transform1.position.X += 0.2f; winTimer = 1.5f; }
+                    if (transform1.position.X <= maxRangeX && lockX == false) { transform1.position.X += 0.2f; winTimer = 0.8f; }
                 }
                 if (key == Key.W)
                 {
-                    if (transform1.position.Y <= maxRangeY && lockY == false) { transform1.position.Y += 0.2f; winTimer = 1.5f; }
+                    if (transform1.position.Y <= maxRangeY && lockY == false) { transform1.position.Y += 0.2f; winTimer = 0.8f; }
                 }
                 if (key == Key.S)
                 {
-                    if (transform1.position.Y >= minRangeY && lockY == false) { transform1.position.Y -= 0.2f; winTimer = 1.5f; }
+                    if (transform1.position.Y >= minRangeY && lockY == false) { transform1.position.Y -= 0.2f; winTimer = 0.8f; }
                 }
                 if (key == Key.R)
                 {
@@ -354,6 +365,8 @@ namespace CG
                 mesh.Draw(transform1, material1, camera);
                 mesh.Draw(transform2, material2, camera);
                 mesh.Draw(transform3, diffuseMaterial, camera);
+                mesh.Draw(transformTimer, redDiffuseMaterial, camera);
+                transformTimer.scale.X = gameTimer * 0.03f;
 
             }
         }
