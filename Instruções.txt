@@ -1,0 +1,19 @@
+CONTROLES:
+W - A - S - D: Mover o Cubo.
+Q - E: Rotacionar o Cubo.
+R: Randomizar o Cubo-Alvo.
+
+Instruções:
+- Seu Objetivo é colocar o Cubo da direita na mesma posição que o Cubo da Esquerda está.
+- Seja rápido, caso o timer zerar o jogo acaba.
+- Sua velocidade também afeta quantos pontos você irá receber.
+---------------------------------------------------------------------------------
+- Para a posição do cubo ser considerada é necessário esperar um pequeno buffer.
+- Quando o buffer não estiver em efeito um sinal verde vai aparecer no canto da tela, indicando que uma posição certa estaria travada.
+- Quando os elementos(X, Y e Rotação) estiverem corretos seus controles serão desabilitados, travando o Cubo na posição correta.
+- Utilize a orientação das texturas para colocar o Cubo na rotação correta.
+- Duas das Faces frontais do Cubo são iguais, nos casos em que não é possível orientar o Cubo pelas outras faces e a rotação parecer não travar, tente a outra face idêntica.
+- O Console irá mostrar sua pontuação.
+
+
+ESSAS INFORMAÇÕES TAMBÉM APARECEM NO CONSOLE QUANDO O JOGO ESTIVER RODANDO.

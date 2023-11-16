@@ -401,7 +401,7 @@ namespace CG
                     Console.WriteLine(" - Quando o buffer não estiver em efeito um sinal verde vai aparecer no canto da tela, indicando que uma posição certa estaria travada.");
                     Console.WriteLine(" - Quando os elementos(X, Y e Rotação) estiverem corretos seus controles serão desabilitados, travando o Cubo na posição correta.");
                     Console.WriteLine(" - Utilize a orientação das texturas para colocar o Cubo na rotação correta.");
-                    Console.WriteLine(" - Duas das Faces frontais do Cubo são iguais, nos casos em que não é possível orientar o Cubo pelas outras faces e a rotação parecer não travar, tente a outra face identica.");
+                    Console.WriteLine(" - Duas das Faces frontais do Cubo são iguais, nos casos em que não é possível orientar o Cubo pelas outras faces e a rotação parecer não travar, tente a outra face idêntica.");
                     Console.WriteLine(" - O Console irá mostrar sua pontuação.");
                     Console.WriteLine(); Console.WriteLine();
                     Console.WriteLine("OBRIGADO POR JOGAR");
